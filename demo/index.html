@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Kaufaz Analytics — Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #11121A; --surface: #1B1D29; --surface2: #252838; --border: #2E3247;
+    --text: #F5F6FA; --muted: #9AA0B8;
+    --orange: #F7943E; --teal: #3EC6DD; --pink: #EC4C82; --green: #6CC24A; --yellow: #FFD54A;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font-family: Nunito, system-ui, sans-serif; }
+  h1, h2, .brand { font-family: Fredoka, Nunito, sans-serif; font-weight: 600; margin: 0; }
+  .muted { color: var(--muted); }
+
+  /* Login */
+  #login { min-height: 100vh; display: grid; place-items: center; padding: 24px; }
+  .login-card { width: 100%; max-width: 380px; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 24px; padding: 32px; animation: rise .5s ease both; }
+  .login-card label { display: block; font-weight: 700; font-size: 13px; color: var(--muted); margin: 16px 0 6px; }
+  .login-card input { width: 100%; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--border);
+    background: var(--bg); color: var(--text); font: inherit; font-size: 15px; }
+  .login-card button { width: 100%; margin-top: 22px; padding: 13px; border: 0; border-radius: 12px;
+    background: var(--orange); color: #fff; font: inherit; font-weight: 800; font-size: 15px; cursor: pointer; }
+  #loginError { color: var(--pink); font-weight: 700; font-size: 13px; min-height: 18px; margin-top: 10px; }
+  .note { margin-top: 18px; font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+  /* App shell */
+  #app { display: none; min-height: 100vh; }
+  #app.on { display: flex; }
+  aside { width: 260px; flex: none; background: var(--surface); border-right: 1px solid var(--border);
+    padding: 32px 24px; display: flex; flex-direction: column; gap: 28px; }
+  .brand { font-size: 40px; letter-spacing: .5px; line-height: 1; }
+  .brand span:nth-child(1), .brand span:nth-child(4) { color: var(--orange); }
+  .brand span:nth-child(2), .brand span:nth-child(5) { color: var(--teal); }
+  .brand span:nth-child(3) { color: var(--pink); }
+  .brand span:nth-child(6) { color: var(--green); }
+  .eyebrow { font-size: 11px; font-weight: 800; color: var(--muted); letter-spacing: .6px; margin-bottom: 10px; }
+  .seg { display: flex; gap: 4px; padding: 4px; background: var(--bg); border-radius: 12px; }
+  .seg div { flex: 1; text-align: center; padding: 7px 2px; white-space: nowrap; border-radius: 9px; font-size: 11px; font-weight: 700; color: var(--muted); }
+  .seg div.on { background: var(--surface2); color: var(--text); font-weight: 800; }
+  .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; vertical-align: 1px; }
+  nav button { display: flex; align-items: center; gap: 12px; width: 100%; padding: 11px 14px; border: 0; border-radius: 14px;
+    background: transparent; color: var(--muted); font: inherit; font-weight: 700; font-size: 15px; cursor: pointer; text-align: left; transition: background .2s, color .2s; }
+  nav button:hover { background: rgba(255,255,255,.03); color: var(--text); }
+  nav button.on { background: var(--surface2); color: var(--text); }
+  nav .sub { padding-left: 36px; font-size: 14px; }
+  .sync { margin-top: auto; background: var(--surface2); border-radius: 16px; padding: 14px; font-size: 12px; }
+  .pulse { animation: pulse 1.8s ease-in-out infinite; }
+
+  main { flex: 1; min-width: 0; padding: 32px 36px; display: flex; flex-direction: column; gap: 24px; }
+  header { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  header .titles { flex: 1; }
+  h1 { font-size: 32px; }
+  .pill { padding: 10px 16px; border-radius: 999px; background: var(--surface); border: 1px solid var(--border); font-weight: 700; font-size: 14px; }
+  .badge { padding: 8px 12px; border-radius: 999px; background: rgba(255,213,74,.14); border: 1px solid rgba(255,213,74,.5);
+    color: var(--yellow); font-weight: 800; font-size: 12px; }
+
+  .grid4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 22px;
+    transition: transform .2s ease, box-shadow .2s ease; opacity: 0; animation: rise .45s ease forwards; }
+  .card:hover { transform: translateY(-3px); box-shadow: 0 14px 32px rgba(0,0,0,.35); }
+  .kpi .label { font-weight: 700; font-size: 14px; color: var(--muted); }
+  .kpi .value { font-weight: 800; font-size: 30px; margin: 10px 0; font-variant-numeric: tabular-nums; }
+  .kpi .delta { font-weight: 700; font-size: 13px; }
+  .up { color: var(--green); } .down { color: var(--pink); }
+
+  .row { display: grid; gap: 20px; }
+  .row.r3 { grid-template-columns: minmax(0, 1fr) 380px; }
+  .row.r2 { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .card h2 { font-size: 20px; }
+  .card .sub { font-size: 13px; color: var(--muted); margin-top: 2px; }
+  .head { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 16px; }
+  .head > div:first-child { flex: 1; }
+  .legend { display: flex; gap: 14px; font-size: 12px; font-weight: 700; color: var(--muted); }
+  .legend i { display: inline-block; width: 12px; height: 12px; border-radius: 4px; margin-right: 6px; vertical-align: -1px; }
+
+  .chart { position: relative; height: 230px; }
+  .chart svg { width: 100%; height: 100%; display: block; overflow: visible; }
+  .bar { transform-origin: bottom; transform-box: fill-box; animation: grow .7s cubic-bezier(.2,.8,.2,1) both; cursor: pointer; }
+  .bar:hover { opacity: 1 !important; }
+  .line { stroke-dasharray: 2000; animation: draw 1.4s ease .4s both; }
+  .tooltip { position: absolute; pointer-events: none; background: var(--surface2); border: 1px solid var(--border); border-radius: 12px;
+    padding: 10px 12px; font-size: 12px; font-weight: 700; box-shadow: 0 8px 24px rgba(0,0,0,.4); opacity: 0; transition: opacity .15s; white-space: nowrap; }
+  .xl { display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; color: var(--muted); margin-top: 10px; }
+
+  .camp { margin-bottom: 16px; }
+  .camp .top { display: flex; align-items: center; }
+  .camp .top div { flex: 1; }
+  .camp b { font-size: 14px; } .camp small { display: block; color: var(--muted); font-size: 12px; }
+  .camp .roas { font-weight: 800; font-size: 18px; }
+  .track { height: 8px; border-radius: 4px; background: var(--surface2); margin-top: 8px; overflow: hidden; }
+  .fill { height: 100%; border-radius: 4px; width: 0; transition: width 1s cubic-bezier(.2,.8,.2,1); }
+
+  .heat { display: flex; gap: 4px; height: 64px; }
+  .heat div { flex: 1; border-radius: 6px; background: var(--orange); }
+  .insight { display: inline-block; margin-top: 16px; padding: 10px 12px; border-radius: 12px; background: rgba(247,148,62,.14); color: var(--orange); font-weight: 800; font-size: 13px; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { text-align: left; font-size: 11px; color: var(--muted); font-weight: 800; padding: 8px 0; }
+  td { padding: 10px 0; border-top: 1px solid var(--border); font-weight: 600; }
+  td.num, th.num { text-align: right; }
+  .info { line-height: 1.7; font-size: 14px; }
+  .info li { margin-bottom: 6px; }
+  .hidden { display: none !important; }
+
+  @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  @keyframes draw { from { stroke-dashoffset: 2000; } to { stroke-dashoffset: 0; } }
+  @keyframes grow { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+  @keyframes pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(108,194,74,.6); } 50% { box-shadow: 0 0 0 6px rgba(108,194,74,0); } }
+  @media (max-width: 1100px) { .grid4 { grid-template-columns: repeat(2, minmax(0, 1fr)); } .row.r3, .row.r2 { grid-template-columns: 1fr; } }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } .card { opacity: 1; } }
+</style>
+</head>
+<body>
+
+<section id="login">
+  <form class="login-card" id="loginForm" autocomplete="off">
+    <div class="brand"><span>k</span><span>a</span><span>u</span><span>f</span><span>a</span><span>z</span></div>
+    <div class="muted" style="font-weight:700;margin-top:6px">Shopee Analytics — Demo</div>
+    <label for="u">Username</label>
+    <input id="u" name="u" required>
+    <label for="p">Password</label>
+    <input id="p" name="p" type="password" required>
+    <button type="submit">Masuk</button>
+    <div id="loginError"></div>
+    <div class="note">Demo untuk reviewer Shopee Open Platform. Semua angka adalah <b>data contoh</b>, bukan data toko asli.
+      Aplikasi asli berjalan lokal di komputer internal Kaufaz dan hanya membaca data (read-only).</div>
+  </form>
+</section>
+
+<div id="app">
+  <aside>
+    <div>
+      <div class="brand"><span>k</span><span>a</span><span>u</span><span>f</span><span>a</span><span>z</span></div>
+      <div class="muted" style="font-weight:700;font-size:13px;margin-top:4px">Shopee Analytics</div>
+    </div>
+    <div>
+      <div class="eyebrow">SUMBER DATA</div>
+      <div class="seg"><div><i class="dot" style="background:var(--green)"></i>Asli</div><div><i class="dot" style="background:var(--yellow)"></i>Sandbox</div><div class="on"><i class="dot" style="background:var(--teal)"></i>Demo</div></div>
+    </div>
+    <nav id="nav">
+      <button data-view="overview" class="on"><i class="dot" style="background:var(--orange)"></i>Overview</button>
+      <button data-view="ads"><i class="dot" style="background:var(--pink)"></i>Iklan</button>
+      <div class="eyebrow" style="margin:14px 0 4px 14px">BRAND PORTAL</div>
+      <button data-view="affiliate" class="sub"><i class="dot" style="background:var(--green)"></i>Affiliate</button>
+      <button data-view="live" class="sub"><i class="dot" style="background:var(--teal)"></i>Livestream</button>
+      <button data-view="video" class="sub"><i class="dot" style="background:var(--yellow)"></i>Video</button>
+      <div style="height:10px"></div>
+      <button data-view="about"><i class="dot" style="background:var(--muted)"></i>Tentang aplikasi</button>
+    </nav>
+    <div class="sync">
+      <div style="font-weight:800;font-size:13px"><i class="dot pulse" style="background:var(--green)"></i>Sync berhasil</div>
+      <div class="muted" style="margin-top:4px">Terakhir: hari ini 07.00 WIB</div>
+    </div>
+  </aside>
+
+  <main>
+    <header>
+      <div class="titles"><h1 id="title">Ringkasan Toko</h1><div class="muted" id="subtitle" style="font-weight:700">30 hari terakhir • pesanan &amp; iklan Shopee</div></div>
+      <span class="badge">DATA CONTOH</span>
+      <span class="pill" id="period"></span>
+    </header>
+    <div id="view"></div>
+  </main>
+</div>
+
+<script>
+(function () {
+  // Demo login for reviewers. The page only contains sample data, so this
+  // gate is a convenience, not a security boundary.
+  var DEMO_USER = "shopee.reviewer";
+  var DEMO_PASS = "KaufazDemo2026";
+
+  var form = document.getElementById("loginForm");
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    var u = document.getElementById("u").value.trim();
+    var p = document.getElementById("p").value;
+    if (u === DEMO_USER && p === DEMO_PASS) {
+      document.getElementById("login").classList.add("hidden");
+      document.getElementById("app").classList.add("on");
+      show("overview");
+    } else {
+      document.getElementById("loginError").textContent = "Username atau password salah.";
+    }
+  });
+
+  // ---------- sample data (deterministic) ----------
+  var seed = 7;
+  function rnd() { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; }
+  var days = [];
+  var end = new Date(); end.setDate(end.getDate() - 1);
+  for (var i = 29; i >= 0; i--) { var d = new Date(end); d.setDate(end.getDate() - i); days.push(d); }
+  var bulan = ["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
+  var hari = ["Min","Sen","Sel","Rab","Kam","Jum","Sab"];
+  function fmtDay(d) { return d.getDate() + " " + bulan[d.getMonth()]; }
+  document.getElementById("period").textContent = fmtDay(days[0]) + " – " + fmtDay(days[29]) + " " + days[29].getFullYear();
+  var sales = days.map(function (d) { var w = d.getDay() === 0 || d.getDay() === 6; return Math.round((4.2 + rnd() * 2.6 + (w ? 1.2 : 0)) * 1e6); });
+  var spend = days.map(function (d, i) { return Math.round((250 + rnd() * 120 + (i > 22 ? 50 : 0)) * 1e3); });
+
+  function rp(n) {
+    if (n >= 1e9) return "Rp " + (n / 1e9).toFixed(1).replace(".", ",") + " M";
+    if (n >= 1e6) return "Rp " + (n / 1e6).toFixed(1).replace(".", ",") + " jt";
+    if (n >= 1e3) return "Rp " + Math.round(n / 1e3) + " rb";
+    return "Rp " + n;
+  }
+  function num(n) { return Math.round(n).toLocaleString("id-ID"); }
+
+  // ---------- building blocks ----------
+  var delay = 0;
+  function card(inner, extra) { delay += 60; return '<div class="card ' + (extra || "") + '" style="animation-delay:' + delay + 'ms">' + inner + "</div>"; }
+  function kpi(label, value, fmt, delta, color, up) {
+    return card('<div class="label"><i class="dot" style="background:var(--' + color + ')"></i>' + label + '</div>' +
+      '<div class="value" data-count="' + value + '" data-fmt="' + fmt + '">0</div>' +
+      '<div class="delta ' + (up ? "up" : "down") + '">' + delta + "</div>", "kpi");
+  }
+  function head(title, sub, right) {
+    return '<div class="head"><div><h2>' + title + '</h2><div class="sub">' + sub + "</div></div>" + (right || "") + "</div>";
+  }
+  function table(cols, rows) {
+    var h = "<table><tr>" + cols.map(function (c, i) { return '<th class="' + (i >= 2 ? "num" : "") + '">' + c + "</th>"; }).join("") + "</tr>";
+    rows.forEach(function (r) { h += "<tr>" + r.map(function (c, i) { return '<td class="' + (i >= 2 ? "num" : "") + '">' + c + "</td>"; }).join("") + "</tr>"; });
+    return h + "</table>";
+  }
+
+  function chart() {
+    var W = 660, H = 210, max = Math.max.apply(null, sales) * 1.1, smax = Math.max.apply(null, spend) * 2.4;
+    var svg = '<svg viewBox="0 0 ' + W + " " + H + '" preserveAspectRatio="none">';
+    for (var g = 0; g < 4; g++) svg += '<rect x="0" y="' + Math.round(g * H / 3) + '" width="' + W + '" height="1" fill="#2E3247"/>';
+    sales.forEach(function (v, i) {
+      var h = Math.round(v / max * H);
+      svg += '<rect class="bar" data-i="' + i + '" x="' + (i * 22 + 3) + '" y="' + (H - h) + '" width="16" height="' + h + '" rx="5" fill="#3EC6DD" opacity="' + (i === 29 ? 1 : .72) + '" style="animation-delay:' + (300 + i * 18) + 'ms"/>';
+    });
+    var pts = spend.map(function (v, i) { return (i * 22 + 11) + "," + Math.round(H - v / smax * H); }).join(" ");
+    svg += '<polyline points="' + pts + '" fill="none" stroke="#EC4C82" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="line"/></svg>';
+    return '<div class="chart" id="chart">' + svg + '<div class="tooltip" id="tip"></div></div>' +
+      '<div class="xl">' + [0, 7, 14, 21, 29].map(function (i) { return "<span>" + fmtDay(days[i]) + "</span>"; }).join("") + "</div>";
+  }
+
+  var views = {
+    overview: function () {
+      var totalSales = sales.reduce(function (a, b) { return a + b; }, 0);
+      var totalSpend = spend.reduce(function (a, b) { return a + b; }, 0);
+      return '<div class="grid4">' +
+        kpi("Pesanan", 874, "num", "▲ 12% vs 30 hari sebelumnya", "orange", true) +
+        kpi("Nilai pesanan", totalSales, "rp", "▲ 9% vs 30 hari sebelumnya", "teal", true) +
+        kpi("Spend iklan", totalSpend, "rp", "▼ 4% lebih hemat", "pink", true) +
+        kpi("ROAS iklan (direct)", 5.4, "x", "▲ 0,6 vs 30 hari sebelumnya", "green", true) +
+        "</div><div class=\"grid4\">" +
+        kpi("Klik iklan", 13420, "num", "▲ 7% vs 30 hari sebelumnya", "yellow", true) +
+        kpi("CTR", 2.3, "pct", "▼ 0,1 poin", "orange", false) +
+        kpi("Pesanan dari iklan", 512, "num", "▲ 10% vs 30 hari sebelumnya", "teal", true) +
+        kpi("Biaya per klik (CPC)", 731, "rpraw", "▲ Rp 22 lebih mahal", "pink", false) +
+        '</div><div class="row r3">' +
+        card(head("Nilai pesanan vs spend iklan", "per hari • arahkan kursor ke batang",
+          '<div class="legend"><span><i style="background:var(--teal)"></i>Nilai pesanan</span><span><i style="background:var(--pink)"></i>Spend iklan</span></div>') + chart()) +
+        card(head("Top campaign iklan", "diurutkan dari ROAS direct tertinggi") +
+          [["Iklan Kemeja Linen", "7,2×", 100, "green", "Spend Rp 2,1 jt"], ["GMV Max Toko", "5,8×", 80, "teal", "Spend Rp 3,9 jt"],
+           ["Iklan Kaos Premium", "4,1×", 57, "orange", "Spend Rp 2,3 jt"], ["Iklan Jaket Bomber", "2,3×", 32, "pink", "Spend Rp 1,5 jt"]]
+          .map(function (c) {
+            return '<div class="camp"><div class="top"><div><b>' + c[0] + "</b><small>" + c[4] + '</small></div><span class="roas" style="color:var(--' + c[3] + ')">' + c[1] + '</span></div>' +
+              '<div class="track"><div class="fill" data-w="' + c[2] + '" style="background:var(--' + c[3] + ')"></div></div></div>';
+          }).join("")) +
+        '</div><div class="row r2">' +
+        card(head("Jam paling ramai", "klik iklan per jam • kemarin") +
+          '<div class="heat">' + [8,5,4,4,5,10,25,40,50,55,60,65,70,60,50,50,55,65,80,95,100,85,60,30].map(function (w, h) {
+            return '<div title="' + String(h).padStart(2, "0") + '.00 WIB" style="opacity:' + Math.max(.15, w / 100) + '"></div>'; }).join("") + "</div>" +
+          '<div class="xl"><span>00</span><span>06</span><span>12</span><span>18</span><span>23</span></div>' +
+          '<div class="insight">🔥 Paling ramai 19.00–21.00 WIB</div>') +
+        card(head("Produk terlaris", "dari pesanan semua channel • 30 hari") +
+          table(["#", "Produk", "Terjual", "Nilai"], [["1", "Kemeja Linen Pria", "312", "Rp 58,9 jt"], ["2", "Celana Chino Slim", "201", "Rp 46,0 jt"],
+            ["3", "Kaos Polos Premium", "388", "Rp 30,6 jt"], ["4", "Jaket Bomber", "74", "Rp 25,8 jt"], ["5", "Tas Selempang Kanvas", "143", "Rp 19,9 jt"]])) +
+        "</div>";
+    },
+    ads: function () {
+      return '<div class="grid4">' +
+        kpi("Impression", 584200, "num", "▲ 5% vs 30 hari sebelumnya", "teal", true) +
+        kpi("Klik", 13420, "num", "▲ 7% vs 30 hari sebelumnya", "yellow", true) +
+        kpi("GMV iklan (direct)", 52.9e6, "rp", "▲ 13% vs 30 hari sebelumnya", "green", true) +
+        kpi("Biaya per pesanan", 19100, "rpraw", "▼ Rp 1.200 lebih hemat", "orange", true) +
+        "</div>" +
+        card(head("Performa campaign", "30 hari • GMV teratribusi iklan, terpisah dari penjualan semua channel") +
+          table(["Campaign", "Tipe", "Impression", "Klik", "CTR", "Spend", "GMV direct", "ROAS"], [
+            ["Iklan Kemeja Linen", "Produk", "142.300", "3.410", "2,4%", "Rp 2,1 jt", "Rp 15,1 jt", "7,2×"],
+            ["GMV Max Toko", "Toko", "231.900", "5.020", "2,2%", "Rp 3,9 jt", "Rp 22,6 jt", "5,8×"],
+            ["Iklan Kaos Premium", "Produk", "121.400", "2.940", "2,4%", "Rp 2,3 jt", "Rp 9,4 jt", "4,1×"],
+            ["Iklan Jaket Bomber", "Produk", "88.600", "2.050", "2,3%", "Rp 1,5 jt", "Rp 3,5 jt", "2,3×"]]));
+    },
+    affiliate: function () {
+      return '<div class="grid4">' +
+        kpi("Penjualan affiliate (confirmed)", 21.4e6, "rp", "▲ 18% vs 30 hari sebelumnya", "green", true) +
+        kpi("Pesanan affiliate", 143, "num", "▲ 11% vs 30 hari sebelumnya", "orange", true) +
+        kpi("Estimasi komisi", 1.9e6, "rp", "▲ 15% vs 30 hari sebelumnya", "pink", true) +
+        kpi("Konten aktif", 38, "num", "▲ 6 konten baru", "teal", true) +
+        "</div>" +
+        card(head("Konten affiliate teratas", "data Brand Portal • terpisah dari iklan Shopee") +
+          table(["Kreator", "Konten", "Penjualan", "Pesanan", "Komisi"], [
+            ["@contoh.kreator1", "Video OOTD kemeja", "Rp 6,2 jt", "41", "Rp 560 rb"],
+            ["@contoh.kreator2", "Live haul", "Rp 4,8 jt", "33", "Rp 430 rb"],
+            ["@contoh.kreator3", "Review kaos", "Rp 3,1 jt", "27", "Rp 280 rb"]]));
+    },
+    live: function () {
+      return '<div class="grid4">' +
+        kpi("Penjualan live (gross)", 14.7e6, "rp", "▲ 9% vs 30 hari sebelumnya", "teal", true) +
+        kpi("Penjualan live (net)", 12.9e6, "rp", "▲ 8% vs 30 hari sebelumnya", "green", true) +
+        kpi("Sesi live", 12, "num", "sama dengan periode lalu", "orange", true) +
+        kpi("Penonton", 8640, "num", "▲ 14% vs 30 hari sebelumnya", "pink", true) +
+        "</div>" +
+        card(head("Sesi livestream", "data Brand Portal • gross dan net ditampilkan terpisah") +
+          table(["Sesi", "Tanggal", "Penonton", "Penjualan gross", "Penjualan net"], [
+            ["Promo Payday", fmtDay(days[24]), "1.420", "Rp 3,2 jt", "Rp 2,8 jt"],
+            ["Koleksi Baru", fmtDay(days[17]), "1.180", "Rp 2,6 jt", "Rp 2,3 jt"],
+            ["Flash Sale Malam", fmtDay(days[10]), "960", "Rp 1,9 jt", "Rp 1,7 jt"]]));
+    },
+    video: function () {
+      return '<div class="grid4">' +
+        kpi("Tayangan video", 46200, "num", "▲ 21% vs 30 hari sebelumnya", "yellow", true) +
+        kpi("Penjualan dari video", 6.3e6, "rp", "▲ 12% vs 30 hari sebelumnya", "green", true) +
+        kpi("Pesanan dari video", 48, "num", "▲ 9% vs 30 hari sebelumnya", "orange", true) +
+        kpi("Video aktif", 27, "num", "▲ 4 video baru", "teal", true) +
+        "</div>" +
+        card(head("Video teratas", "data Brand Portal • penonton unik hanya tersedia untuk rentang harian/mingguan") +
+          table(["Video", "Tayangan", "Penjualan", "Pesanan"], [
+            ["Cara styling kemeja linen", "12.400", "Rp 2,1 jt", "15"],
+            ["Unboxing jaket bomber", "9.800", "Rp 1,6 jt", "11"],
+            ["3 outfit kaos polos", "7.300", "Rp 1,1 jt", "9"]]));
+    },
+    about: function () {
+      return card(head("Tentang Kaufaz Analytics", "untuk reviewer Shopee Open Platform") +
+        '<ul class="info">' +
+        "<li>Aplikasi analitik <b>internal</b> untuk toko dan brand Kaufaz sendiri (Indonesia).</li>" +
+        "<li><b>Read-only</b>: hanya membaca data pesanan, produk/stok, iklan Shopee, serta performa Brand Portal (sales, affiliate, livestream, video). Tidak pernah membuat, mengubah, atau menghapus data.</li>" +
+        "<li>Tidak meminta data pribadi pembeli (nama, telepon, alamat).</li>" +
+        "<li>Aplikasi asli berjalan <b>lokal</b> di komputer internal Kaufaz; token disimpan terenkripsi (Windows DPAPI). Halaman ini hanya demo dengan <b>data contoh</b>.</li>" +
+        "<li>Data dari sumber berbeda (iklan, pesanan semua channel, Brand Portal) ditampilkan terpisah dan tidak dijumlahkan.</li>" +
+        "</ul>");
+    },
+  };
+  var titles = {
+    overview: ["Ringkasan Toko", "30 hari terakhir • pesanan & iklan Shopee"],
+    ads: ["Iklan Shopee", "30 hari terakhir • performa campaign"],
+    affiliate: ["Brand Portal — Affiliate", "30 hari terakhir • data Brand Portal"],
+    live: ["Brand Portal — Livestream", "30 hari terakhir • data Brand Portal"],
+    video: ["Brand Portal — Video", "30 hari terakhir • data Brand Portal"],
+    about: ["Tentang aplikasi", "read-only • internal"],
+  };
+
+  function format(v, f) {
+    if (f === "rp") return rp(v);
+    if (f === "rpraw") return "Rp " + num(v);
+    if (f === "x") return v.toFixed(1).replace(".", ",") + "×";
+    if (f === "pct") return v.toFixed(1).replace(".", ",") + "%";
+    return num(v);
+  }
+  function countUp() {
+    document.querySelectorAll("[data-count]").forEach(function (el) {
+      var target = parseFloat(el.dataset.count), f = el.dataset.fmt, t0 = performance.now();
+      (function step(t) {
+        var k = Math.min(1, (t - t0) / 800), e = 1 - Math.pow(1 - k, 3);
+        el.textContent = format(target * e, f);
+        if (k < 1) requestAnimationFrame(step);
+      })(t0);
+    });
+  }
+  function wireChart() {
+    var c = document.getElementById("chart"); if (!c) return;
+    var tip = document.getElementById("tip");
+    c.querySelectorAll(".bar").forEach(function (b) {
+      b.addEventListener("mousemove", function (e) {
+        var i = +b.dataset.i, r = c.getBoundingClientRect();
+        tip.innerHTML = hari[days[i].getDay()] + ", " + fmtDay(days[i]) + '<br><span style="color:var(--teal)">Nilai pesanan ' + rp(sales[i]) +
+          '</span><br><span style="color:var(--pink)">Spend iklan ' + rp(spend[i]) + "</span>";
+        tip.style.opacity = 1;
+        tip.style.left = Math.min(r.width - 180, e.clientX - r.left + 12) + "px";
+        tip.style.top = Math.max(0, e.clientY - r.top - 70) + "px";
+      });
+      b.addEventListener("mouseleave", function () { tip.style.opacity = 0; });
+    });
+  }
+  function show(name) {
+    delay = 0;
+    document.getElementById("title").textContent = titles[name][0];
+    document.getElementById("subtitle").textContent = titles[name][1];
+    document.getElementById("view").innerHTML = '<div style="display:flex;flex-direction:column;gap:24px">' + views[name]() + "</div>";
+    document.querySelectorAll("#nav button").forEach(function (b) { b.classList.toggle("on", b.dataset.view === name); });
+    countUp(); wireChart();
+    setTimeout(function () { document.querySelectorAll(".fill").forEach(function (f) { f.style.width = f.dataset.w + "%"; }); }, 350);
+  }
+  document.getElementById("nav").addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-view]"); if (b) show(b.dataset.view);
+  });
+})();
+</script>
+</body>
+</html>
